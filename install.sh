@@ -1,9 +1,9 @@
 #!/bin/bash
 # WARNING: this script will destroy data on the selected disk.
 # This script can be run by executing the following:
-#   curl -sl shorturl.at/wBFHS | bash
+#   curl -sl shorturl.at/aemul | bash
 # And download it by executing the folloming:
-#   curl -LJ shorturl.at/wBFHS -o install.sh
+#   curl -LJ shorturl.at/aemuL >install.sh
 
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
