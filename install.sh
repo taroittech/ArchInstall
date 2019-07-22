@@ -1,9 +1,9 @@
 #!/bin/bash
 # WARNING: this script will destroy data on the selected disk.
 # This script can be run by executing the following:
-#   curl -sl shorturl.at/aemul | bash
+#   curl -sl | bash
 # And download it by executing the folloming:
-#   curl -LJ shorturl.at/aemuL >install.sh
+#   curl -LJ >install.sh
 
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
@@ -31,8 +31,10 @@ device=$(dialog --stdout --menu "Select installation disk" 0 0 0 ${devicelist}) 
 clear
 
 ### Set up logging ###
-exec 1> >(tee "stdout.log")
-exec 2> >(tee "stderr.log")
+stdout=stdout.log
+stderr=stderr.log
+exec 1> >(tee $stdout)
+exec 2> >(tee $stderr)
 
 timedatectl set-ntp true
 
