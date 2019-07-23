@@ -1,14 +1,19 @@
 #!/bin/bash
 # WARNING: this script will destroy data on the selected disk.
 # This script can be run by executing the following:
-#   curl -sl | bash
-# And download it by executing the folloming:
-#   curl -LJ >install.sh
-
+#   curl -sL https://git.io/vAoV8 | bash
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
 REPO_URL="https://s3.eu-west-2.amazonaws.com/mdaffin-arch/repo/x86_64"
+MIRRORLIST_URL="https://www.archlinux.org/mirrorlist/?country=GB&protocol=https&use_mirror_status=on"
+
+pacman -Sy --noconfirm pacman-contrib
+
+echo "Updating mirror list"
+curl -s "$MIRRORLIST_URL" | \
+    sed -e 's/^#Server/Server/' -e '/^#/d' | \
+    rankmirrors -n 5 - > /etc/pacman.d/mirrorlist
 
 ### Get infomation from user ###
 hostname=$(dialog --stdout --inputbox "Enter hostname" 0 0) || exit 1
@@ -27,14 +32,12 @@ clear
 [[ "$password" == "$password2" ]] || ( echo "Passwords did not match"; exit 1; )
 
 devicelist=$(lsblk -dplnx size -o name,size | grep -Ev "boot|rpmb|loop" | tac)
-device=$(dialog --stdout --menu "Select installation disk" 0 0 0 ${devicelist}) || exit 1
+device=$(dialog --stdout --menu "Select installtion disk" 0 0 0 ${devicelist}) || exit 1
 clear
 
 ### Set up logging ###
-stdout=stdout.log
-stderr=stderr.log
-#exec > >(tee ${STATUSFILE}) 2> >(tee ${LOGFILE} >&2)
-exec > >(tee ${stdout}) 2> >(tee ${stderr} >&2)
+exec 1> >(tee "stdout.log")
+exec 2> >(tee "stderr.log")
 
 timedatectl set-ntp true
 
@@ -48,7 +51,7 @@ parted --script "${device}" -- mklabel gpt \
   mkpart primary linux-swap 129MiB ${swap_end} \
   mkpart primary ext4 ${swap_end} 100%
 
-# Simple globbing was not enough as on one device I needed to match /dev/mmcblk0p1
+# Simple globbing was not enough as on one device I needed to match /dev/mmcblk0p1 
 # but not /dev/mmcblk0boot1 while being able to match /dev/sda1 on other devices.
 part_boot="$(ls ${device}* | grep -E "^${device}p?1$")"
 part_swap="$(ls ${device}* | grep -E "^${device}p?2$")"
