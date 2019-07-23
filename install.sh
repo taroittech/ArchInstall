@@ -33,8 +33,8 @@ clear
 ### Set up logging ###
 stdout=stdout.log
 stderr=stderr.log
-exec 1> >(tee $stdout)
-exec 2> >(tee $stderr)
+#exec > >(tee ${STATUSFILE}) 2> >(tee ${LOGFILE} >&2)
+exec > >(tee ${stdout}) 2> >(tee ${stderr} >&2)
 
 timedatectl set-ntp true
 
